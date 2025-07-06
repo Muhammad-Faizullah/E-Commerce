@@ -11,17 +11,18 @@ class OrderProductSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = OrderProduct
-        fields = ['id','order','product','size','color','quantity']
+        fields = ['id','order','variant','quantity']
         read_only_fields = ['order']
 
 class OrderSerializer(WritableNestedModelSerializer):
+    # total_price = serializers.SerializerMethodField()
     order_product = OrderProductSerializer(many=True)
     
     class Meta:
         model = Order
-        fields = ['user','order_product','country','city','address','phone_number','payment_method','status']
-        
-            
+        fields = ['id','user','order_product','country','city','address','phone_number','payment_method','status','total_price']
+        read_only_fields = ['total_price']
+    
     def validate(self,attrs):
         request = self.context.get('request')
         attrs['user'] = request.user
@@ -31,37 +32,16 @@ class OrderSerializer(WritableNestedModelSerializer):
             raise serializers.ValidationError({"error":"provide product you want to order"})
         
         for data in order_product:
-            product = data.get('product')
-            size = data.get('size')
-            color = data.get('color')
+            variant= data.get('variant')
             quantity = data.get('quantity')
-            
+            if variant is None:
+                raise serializers.ValidationError({"error":"enter product's variant "})
             if quantity is None:
-                raise serializers.ValidationError({"error":"enter cloth's quantity"})
-            
-            if color is None:
-                raise serializers.ValidationError({"error":"enter cloth's color"})
-            
-            if size is None:
-                raise serializers.ValidationError({"error":"enter cloth's size "})
-            
-            variants = Variant.objects.filter(product=product)
-            
-            for i in variants:
-                
-                if not variants.filter(size=size, quantity__gte=quantity).exists():
-                    raise serializers.ValidationError({"error":"This Cloth does not exist"})
-                
-                if not variants.filter(color=color, quantity__gte=quantity).exists():
-                    raise serializers.ValidationError({"error":"This Cloth does not exist"})                    
-                
-                if size == i.size and color == i.color:
-                    
-                    if i.quantity == 0:
-                        raise serializers.ValidationError({"error":"Sold Out"})
-                    
-                    if i.quantity - quantity < 0:
-                        raise serializers.ValidationError({"error":f"We have {i.quantity} {i.color } {product.name} in {i.size} size"})
+                raise serializers.ValidationError({"error":"enter cloth's quantity"})     
+            if variant.quantity == 0:
+                raise serializers.ValidationError({"error":"Sold Out"})
+            if variant.quantity - quantity < 0:
+                raise serializers.ValidationError({"error":"Insufficient stock"})
         
         return attrs 
         
@@ -70,33 +50,31 @@ class OrderListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Order
-        fields = ['user','order_product','country','city','address','phone_number','payment_method','status']
- 
+        fields = ['id','user','order_product','country','city','address','phone_number','payment_method','status','total_price']
+        read_only_fields = ['total_price']
 class PaymentSerializer(serializers.ModelSerializer):
-    
+    total_price = total_price = serializers.ReadOnlyField(source='order.total_price')
     class Meta:
         model = Payment
-        fields = ['order','amount_paid']
+        fields = ['id','order','amount_paid','total_price']
+
+    def get_order_total_price(self, obj):
+        return OrderSerializer(obj.order).data['total_price']
     
     def validate(self, attrs):
         order = attrs.get('order')
-        print('order ----->',order.get('total_amount'))
+        total_price = order.total_price
         amount_paid = attrs.get('amount_paid')
-        
-        
-        
+
         if order is None:
             raise serializers.ValidationError({"error":"provide the order id that you want to pay for "})
-        
         if amount_paid is None:
-            raise serializers.ValidationError({"error":"You should pay for your order"})
-        
-        # if total_amount > amount_paid:
-        #     raise serializers.ValidationError({"error":f"You have to pay {total_amount}.Rs"})
-        
-        # if total_amount < amount_paid:
-        #     raise serializers.ValidationError({"error":f"You have to pay exact {total_amount}.Rs"})
-        
-        order.status = "Payed"
+            raise serializers.ValidationError({"error":"provide the payment"})
+        if order.status == "Paid":
+            raise serializers.ValidationError({"error":"this order was already paid"})
+        if amount_paid < total_price or amount_paid > total_price:
+            raise serializers.ValidationError({"error":f"you should pay {total_price}.Rs"})
+
+        order.status = "Paid"
         order.save()
         return attrs   

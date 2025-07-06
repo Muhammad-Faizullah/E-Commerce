@@ -37,7 +37,7 @@ class OrderListView(viewsets.ViewSet):
     permission_classes = [AdminPermission] 
 
     def order_list(self,request):
-        obj = Order.objects.all()
+        obj = Order.objects.all().order_by("-id")
         serializer = OrderListSerializer(obj,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)   
     
@@ -50,7 +50,7 @@ class PaymentView(viewsets.ViewSet):
         
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data,status=status.HTTP_201_CREATED)
+            return Response({"message":"payment was successful"},status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
