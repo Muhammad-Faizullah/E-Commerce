@@ -31,7 +31,6 @@ class Order(models.Model):
     
     @property
     def total_price(self):
-        print("object ---",self)
         order_products = OrderProduct.objects.filter(order__id=self.id)
         price_list = []
         for order_product in order_products:
@@ -71,7 +70,6 @@ class Payment(models.Model):
 
 @receiver(post_save,sender=OrderProduct)
 def post_save_order(sender,instance,created,**kwargs):
-    print("instance -- ",instance)
     variant = instance.variant
     variant.quantity -= instance.quantity
     variant.save()
@@ -79,11 +77,9 @@ def post_save_order(sender,instance,created,**kwargs):
       
 @receiver(post_save,sender=Order)
 def post_email_calculation(sender,instance,created,**kwargs):
-    print('instance --->',instance)
     if created:
         user = instance.user
         email = user.email
-        print("user -- email --",user.username, email)
 
         send_mail(
         "Your Order Has Been Created",

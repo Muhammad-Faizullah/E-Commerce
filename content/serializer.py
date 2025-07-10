@@ -18,7 +18,7 @@ class VariantSerializer(serializers.ModelSerializer):
         
 class ProductImageSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
-    image_file = serializers.CharField(max_length=200)
+    # image_file = serializers.CharField(max_length=200)
     
     class Meta:
         model = ProductImage

@@ -53,14 +53,19 @@ class PublishingView(viewsets.ViewSet):
         return Response({"message":"product unpublished"},status=status.HTTP_201_CREATED)
 
 
-class CategoryListView(ListAPIView,CreateAPIView):
+class CategoryListView(ListAPIView):
     queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = CategoryFilter 
+    
+
+class CategoryCreateView(CreateAPIView):
     serializer_class = CategorySerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [OwnerPermission,AdminPermission]
-    filter_backends = (filters.DjangoFilterBackend)
-    filterset_class = CategoryFilter 
-    
+
+
 class CategoryRetrieveView(RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -78,7 +83,7 @@ class ProductRetrieveView(RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductListSerializer
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
         
 
 class AdminProductListView(ListAPIView):

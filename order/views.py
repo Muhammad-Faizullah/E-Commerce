@@ -34,13 +34,27 @@ class OrderView(viewsets.ViewSet):
  
 class OrderListView(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [AdminPermission] 
+    permission_classes = [IsAuthenticated]
+    
+    def order_list(self,request):
+        user = request.user
+        print("user --- ",user)
+        if user.is_admin is True or user.is_owner is True:
+            obj = Order.objects.all().order_by("-id")
+            serializer = OrderListSerializer(obj,many=True)
+            return Response(serializer.data,status=status.HTTP_200_OK) 
+        obj = Order.objects.filter(user__id=user.id).order_by("-id")
+        serializer = OrderListSerializer(obj,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)   
+
+class OrderListView(viewsets.ViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated] 
 
     def order_list(self,request):
         obj = Order.objects.all().order_by("-id")
         serializer = OrderListSerializer(obj,many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)   
-    
+        return Response(serializer.data,status=status.HTTP_200_OK) 
 class PaymentView(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]

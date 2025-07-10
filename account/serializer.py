@@ -76,12 +76,13 @@ class LoginSerializer(serializers.Serializer):
         
         if password is None:
             raise serializers.ValidationError({"password ":"must not be empty"})
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"error": "provided credentials are not valid"})
+        if not user.check_password(password):
+            raise serializers.ValidationError({"error": "provided credentials are not valid"})
 
-        user = authenticate(email=email,password=password)
-        
-        if user is None:
-            raise ValidationError({"error":"Invalid credentials"})
-        
         username = user.username
         email = user.email
         refresh_token = RefreshToken.for_user(user)
@@ -191,7 +192,9 @@ class GenerateOtpSerializer(serializers.Serializer):
         except User.DoesNotExist:
             raise serializers.ValidationError({"error":"invalid email"})
 
-        otp = random. randint(1000, 9999)
+        otp = random.randint(1000, 9999)
+        attrs["user"]=user_obj
+        attrs["otp"]=otp
         send_mail(
         "OTP Generated",
         f"Here is your otp {otp} Do not share this with anyone .",

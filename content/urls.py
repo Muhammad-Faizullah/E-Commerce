@@ -1,6 +1,16 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-from .views import ProductListView,AdminProductListView,CategoryListView,CategoryRetrieveView,AdminProductCreateView,AdminProductRUDView,ProductRetrieveView,PublishingView
+from .views import(
+ProductListView,
+AdminProductListView,
+CategoryListView,
+CategoryRetrieveView,
+AdminProductCreateView,
+AdminProductRUDView,
+ProductRetrieveView,
+PublishingView,
+CategoryCreateView
+)
 
 urlpatterns = [
     path('Product/List/',ProductListView.as_view()),
@@ -10,7 +20,7 @@ urlpatterns = [
     path('ChangesInProduct/<int:pk>/',AdminProductRUDView.as_view()),
     path('DeletionOfProduct/<int:pk>/',AdminProductRUDView.as_view()),
     path('Category/list/',CategoryListView.as_view()),
-    path('Category/Create/',CategoryListView.as_view()),
+    path('Category/Create/',CategoryCreateView.as_view()),
     path('Category/Change/<int:pk>/',CategoryRetrieveView.as_view()),
     path('Category/Delete/<int:pk>/',CategoryRetrieveView.as_view()),
     path('publish/<int:pk>/',PublishingView.as_view({"post":"product_publish"})),
