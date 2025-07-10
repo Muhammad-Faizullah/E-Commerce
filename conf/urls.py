@@ -18,9 +18,12 @@ from django.contrib import admin
 from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
-
+# from django.conf.urls import re_path
+from account.views import index
+from django.urls import include, re_path
 
 urlpatterns = [
+    path("", index, name="index"),
     path('admin/', admin.site.urls),
     path('account/',include("account.urls")),
     path('content/',include("content.urls")),
@@ -28,3 +31,8 @@ urlpatterns = [
 ] + static("media/", document_root=settings.MEDIA_ROOT)
 
 
+if settings.DEBUG:
+    urlpatterns = urlpatterns + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+urlpatterns += [re_path(r'app^(?:.*)/?$', index,name='index1')]
+urlpatterns += [re_path(r'app/', index,name='index1')]
