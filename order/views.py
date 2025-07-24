@@ -1,8 +1,8 @@
 
 from django.shortcuts import render
 from content.models import Product
-from .models import Order
-from .serializer import OrderSerializer,OrderListSerializer,PaymentSerializer
+from .models import Order,Feedback
+from .serializer import OrderSerializer,OrderListSerializer,PaymentSerializer,FeedbackSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -47,14 +47,14 @@ class OrderListView(viewsets.ViewSet):
         serializer = OrderListSerializer(obj,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)   
 
-class OrderListView(viewsets.ViewSet):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated] 
+# class OrderListView(viewsets.ViewSet):
+#     authentication_classes = [JWTAuthentication]
+#     permission_classes = [IsAuthenticated] 
 
-    def order_list(self,request):
-        obj = Order.objects.all().order_by("-id")
-        serializer = OrderListSerializer(obj,many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK) 
+#     def order_list(self,request):
+#         obj = Order.objects.all().order_by("-id")
+#         serializer = OrderListSerializer(obj,many=True)
+#         return Response(serializer.data,status=status.HTTP_200_OK) 
 class PaymentView(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -86,3 +86,28 @@ class TaskView(viewsets.ViewSet):
             name = "birthday reminder task"
         )
         return Response({"Message":"Task scheduled!"})
+
+class FeedbackView(ListAPIView,CreateAPIView):
+    queryset = Feedback.objects.all().order_by('-submitted_at')
+    serializer_class = FeedbackSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [] 
+
+    def get_permissions(self):
+        if self.request.method in ['POST']:
+            return [] 
+        return [IsAdminUser()] 
+    
+    def post(self,request,*args,**kwargs):
+        serializer = FeedbackSerializer(data=request.data,context={"user":request.user})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+class FeedbackViewForAdmin(ListAPIView,RetrieveUpdateDestroyAPIView):
+    queryset = Feedback.objects.all().order_by('-submitted_at')
+    serializer_class = FeedbackSerializer
+    authentication_classes = []
+    permission_classes = [AdminPermission] 
+ 

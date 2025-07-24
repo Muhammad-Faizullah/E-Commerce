@@ -66,6 +66,7 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=50)
     user_detail = serializers.SerializerMethodField()
     token_detail = serializers.SerializerMethodField()
+    feedback_given = serializers.BooleanField(read_only=True)
                    
     def validate(self,attrs):
         email = attrs.get('email')
@@ -94,7 +95,8 @@ class LoginSerializer(serializers.Serializer):
         attrs["user"] = {
             "id":user.id,
             "username":username,
-            "email":email
+            "email":email,
+            "feedback_given":user.feedback_given
         }
         return attrs
     
@@ -105,7 +107,8 @@ class LoginSerializer(serializers.Serializer):
             return {
                 "id":user.get('id'),
                 "username":user.get('username'),
-                "email":user.get('email')
+                "email":user.get('email'),
+                "feedback_given":user.get('feedback_given')
             }
         
     def get_token_detail(self,obj):

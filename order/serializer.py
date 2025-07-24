@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from content.serializer import VariantSerializer
 from drf_writable_nested import WritableNestedModelSerializer
-from .models import Order,OrderProduct,Payment
+from .models import Order,OrderProduct,Payment,Feedback
 from content.models import Product
 from rest_framework.response import Response
 from content.models import Variant
@@ -78,3 +78,18 @@ class PaymentSerializer(serializers.ModelSerializer):
         order.status = "Paid"
         order.save()
         return attrs   
+
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = ['id','rating','comment','user']
+    
+    def validate(self, attrs):
+        user = self.context.get('user')
+        print('user',user)
+        attrs['user'] = user
+        return attrs
+    
+    def create(self, validated_data):
+        return super().create(validated_data)

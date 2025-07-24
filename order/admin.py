@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Order,Payment,OrderProduct
+from .models import Order,Payment,OrderProduct,Feedback
 
 @admin.register(OrderProduct)
 class OrderproductAdmin(admin.ModelAdmin):
@@ -15,4 +15,9 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ['id','order','amount_paid']
+    list_per_page = 15
+
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ['id','rating','comment']
     list_per_page = 15

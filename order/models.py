@@ -87,3 +87,24 @@ def post_email_calculation(sender,instance,created,**kwargs):
         EMAIL_HOST_USER,
         [email]
         )     
+
+
+class Feedback(models.Model):
+    # name = models.CharField(max_length=100)
+    # product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='feedbacks', null=True, blank=True)
+    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
+    comment = models.TextField()
+    user = models.ForeignKey(User,on_delete=models.DO_NOTHING,null=True,blank=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Feedback from {self.name} - {self.rating}⭐"
+
+
+@receiver(post_save,sender=Feedback)
+def post_save_feedback(sender,instance,created,**kwargs):
+    if created:
+        user = instance.user
+        user_obj = User.objects.get(id=user.id)
+        user_obj.feedback_given = True
+        user_obj.save()
