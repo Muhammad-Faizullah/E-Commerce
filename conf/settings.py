@@ -28,10 +28,10 @@ SECRET_KEY = 'django-insecure-x&^2*$66=c$_os*9%0#xk#kw-q_w4%4qlkg$f_(lfo9_pk%@lo
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 AUTH_USER_MODEL = "account.User"
-
+X_FRAME_OPTIONS = "ALLOWALL"
 # Application definition
 
 INSTALLED_APPS = [
@@ -45,8 +45,11 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'account',
     'content',
-    'django_filters'
-    
+    'order',
+    'django_filters',
+    'django_celery_beat',
+    'django_celery_results',
+    'corsheaders'
 ]
 
 REST_FRAMEWORK = {
@@ -61,6 +64,7 @@ SIMPLE_JWT = {
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -73,7 +77,7 @@ ROOT_URLCONF = 'conf.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, "static")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -141,4 +145,61 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
-MEDIA_URL = "http://127.0.0.1:9000/media/"
+# MEDIA_URL = "https://3b26d5eb39cd.ngrok-free.app/media/"
+MEDIA_URL = "http://localhost:8000/media/"
+
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "account", "static")]
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+
+# Mail configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'muhammadfaizullah001@gmail.com'
+EMAIL_HOST_PASSWORD = "mhrjbludwrbbiglj"
+
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+# Celery Configuration Options
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+
+CELERY_TIMEZONE = "UTC"
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://bf93-154-192-74-35.ngrok-free.app",
+    "http://127.0.0.0.1:3002",
+    "http://127.0.0.0.1:3001",
+    "http://127.0.0.0.1:8000",
+    "http://127.0.0.0.1:3005"
+]
+CORS_ORIGIN_WHITELIST = ("http://157.230.58.251:9000", "http://localhost:8000", "http://127.0.0.1:3000")
+CORS_ORIGIN_REGEX_WHITELIST = [
+    "http://157.230.58.251:9000",
+    "*",
+]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+CORS_ALLOW_HEADERS = [
+    "*",
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]

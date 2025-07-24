@@ -7,23 +7,21 @@ class Category(models.Model):
     description = models.CharField(max_length=10000)
     
     def __str__(self):
-        return f'{self.name}'
+        return self.name
 
 class Product(models.Model):    
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
     category = models.ForeignKey(Category,on_delete=models.CASCADE,null=True,blank=True)
     brand = models.CharField(max_length=50)
     name = models.CharField(max_length=200)
-    color = models.CharField(max_length=30)
     price = models.IntegerField()
-    quantity = models.IntegerField()
     description = models.CharField(max_length=10000)
     created_at = models.DateTimeField(auto_now_add=True,null=True,blank=True)
     updated_at = models.DateTimeField(auto_now=True)
     publish = models.BooleanField(default=False)
     
     def __str__(self):
-        return f'{self.name}'
+        return self.name
     # @property
     # def user_email(self):
     #     return self.user.email
@@ -32,6 +30,17 @@ class ProductImage(models.Model):
     product = models.ForeignKey(Product,on_delete=models.CASCADE,null=True,blank=True,related_name='product_image')
     image_file = models.ImageField(upload_to="ProductImage/",null=True,blank=True)
     
+class Variant(models.Model):
     
-
+    Choices = [
+        ('S','Small'),
+        ('M','Medium'),
+        ('L','Large'),
+        ('XL','Extra Large')
+    ]
+    
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='product_variant',null=True,blank=True)
+    size = models.CharField(max_length=100,choices=Choices)
+    quantity = models.IntegerField()
+    color = models.CharField(max_length=50)
     

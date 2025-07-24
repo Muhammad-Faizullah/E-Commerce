@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from rest_framework.authentication import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 import math,random
+from django.core.mail import send_mail
+from conf.settings import EMAIL_HOST_USER
+
 
 class AdminUserSerializer(serializers.ModelSerializer):
     
@@ -33,7 +36,6 @@ class AdminUserSerializer(serializers.ModelSerializer):
         return user
     
         
-
 class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=50)
     email = serializers.EmailField()
@@ -64,6 +66,7 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=50)
     user_detail = serializers.SerializerMethodField()
     token_detail = serializers.SerializerMethodField()
+    feedback_given = serializers.BooleanField(read_only=True)
                    
     def validate(self,attrs):
         email = attrs.get('email')
@@ -74,12 +77,13 @@ class LoginSerializer(serializers.Serializer):
         
         if password is None:
             raise serializers.ValidationError({"password ":"must not be empty"})
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"error": "provided credentials are not valid"})
+        if not user.check_password(password):
+            raise serializers.ValidationError({"error": "provided credentials are not valid"})
 
-        user = authenticate(email=email,password=password)
-        
-        if user is None:
-            raise ValidationError({"error":"Invalid credentials"})
-        
         username = user.username
         email = user.email
         refresh_token = RefreshToken.for_user(user)
@@ -91,7 +95,8 @@ class LoginSerializer(serializers.Serializer):
         attrs["user"] = {
             "id":user.id,
             "username":username,
-            "email":email
+            "email":email,
+            "feedback_given":user.feedback_given
         }
         return attrs
     
@@ -102,7 +107,8 @@ class LoginSerializer(serializers.Serializer):
             return {
                 "id":user.get('id'),
                 "username":user.get('username'),
-                "email":user.get('email')
+                "email":user.get('email'),
+                "feedback_given":user.get('feedback_given')
             }
         
     def get_token_detail(self,obj):
@@ -113,7 +119,6 @@ class LoginSerializer(serializers.Serializer):
                 "access_token":token.get('access_token')
             }
             
-
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(max_length=50)
@@ -190,9 +195,17 @@ class GenerateOtpSerializer(serializers.Serializer):
         except User.DoesNotExist:
             raise serializers.ValidationError({"error":"invalid email"})
 
-        otp = random. randint(1000, 9999)
-        attrs['user'] = user_obj
-        attrs['otp'] = otp
+        otp = random.randint(1000, 9999)
+        attrs["user"]=user_obj
+        attrs["otp"]=otp
+        send_mail(
+        "OTP Generated",
+        f"Here is your otp {otp} Do not share this with anyone .",
+        EMAIL_HOST_USER,
+        [email]
+        )
+        # attrs['user'] = user_obj
+        # attrs['otp'] = otp
         return attrs
 
     def create(self,validated_data):

@@ -13,6 +13,7 @@ from django_filters import rest_framework as filters
 from account.permissions import AdminPermission,OwnerPermission
 from rest_framework import viewsets
 
+
 class PublishingView(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [AdminPermission]
@@ -22,12 +23,16 @@ class PublishingView(viewsets.ViewSet):
         try:    
             id = pk
             obj = Product.objects.get(id=id)
+            
             if obj.publish == True:
                 return Response({"message":"this product is already published"},status=status.HTTP_400_BAD_REQUEST)
+            
             obj.publish = True
             obj.save()
+        
         except Product.DoesNotExist:
             return Response({"error":"valid id is required"})
+        
         return Response({"message":"product published"},status=status.HTTP_201_CREATED)
     
     def product_unpublish(self,request,pk):
@@ -35,22 +40,32 @@ class PublishingView(viewsets.ViewSet):
         try:
             id = pk
             obj = Product.objects.get(id=id)
+            
             if obj.publish == False:
                 return Response({"message":"this product is already unpublished"},status=status.HTTP_400_BAD_REQUEST)
+            
             obj.publish = False
             obj.save()        
+        
         except Product.DoesNotExist:
             return Response({"error":"valid id is required"})
+        
         return Response({"message":"product unpublished"},status=status.HTTP_201_CREATED)
 
 
-class CategoryListView(ListAPIView,CreateAPIView):
+class CategoryListView(ListAPIView):
     queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = CategoryFilter 
+    
+
+class CategoryCreateView(CreateAPIView):
     serializer_class = CategorySerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [OwnerPermission,AdminPermission]
-    filter_backends = (filters.DjangoFilterBackend)
-    filterset_class = CategoryFilter 
+
+
 class CategoryRetrieveView(RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -62,34 +77,41 @@ class ProductListView(ListAPIView):
     queryset = Product.objects.filter(publish=True)
     serializer_class = ProductListSerializer
     filter_backends = [filters.DjangoFilterBackend]
-    filterset_class = ProductFilter            
+    filterset_class = ProductFilter   
+    
+class ProductRetrieveView(RetrieveAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductListSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = []
+        
+
 class AdminProductListView(ListAPIView):
     queryset = Product.objects.order_by('id').reverse()
     serializer_class = ProductListSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-class ProductRetrieveView(RetrieveAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductListSerializer
+    
+class AdminProductCreateView(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-class ProductCreateView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-    permission_classes = [OwnerPermission,AdminPermission]
+    permission_classes = [AdminPermission]
     
     def post(self,request,*args,**kwargs):
         user = self.request.user
         print(user)
         serializer = ProductSerializer(data=request.data)
+        
         if serializer.is_valid():
             serializer.save(user=user)
             return Response(serializer.data,status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-class ProductRUDView(RetrieveUpdateDestroyAPIView):
+    
+class AdminProductRUDView(RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     authentication_classes = [JWTAuthentication]
-    permission_classes = [OwnerPermission,AdminPermission]
+    permission_classes = [AdminPermission]
     
-    
+
+        

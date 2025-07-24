@@ -13,6 +13,13 @@ import math,random
 from rest_framework.serializers import ValidationError
 from django.core.files.storage import Storage,default_storage,DefaultStorage
 from .permissions import OwnerPermission
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def index(request):
+    context = {}
+    return render(request, "react/index.html", context)
+
 
 class AdminUserView(ListAPIView,CreateAPIView):
     queryset = User.objects.all()
@@ -25,7 +32,6 @@ class AdminUserRUDView(RetrieveAPIView,UpdateAPIView,DestroyAPIView):
     serializer_class = AdminUserSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [OwnerPermission]
-    
     
 
 class RegisterView(APIView):
@@ -40,7 +46,8 @@ class RegisterView(APIView):
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
 class LoginView(APIView):
-    
+    authentication_classes = []
+    permission_classes = []
     def post(self,request,*args,**kwargs):
         serializer = LoginSerializer(data=request.data)
         

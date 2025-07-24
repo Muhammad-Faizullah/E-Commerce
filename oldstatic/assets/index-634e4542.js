@@ -1,0 +1,1 @@
+import{v as c,w as g,x as n}from"./index-dd8f6260.js";const r=e=>t=>{c.get(e.url,g).then(s=>{console.log(e.url),t({type:e.case,data:s.data}),e.setLoaded&&e.setLoaded(!0),e.setBlocking&&e.setBlocking(!1)}).catch(()=>{console.log(n()),e.setLoaded&&e.setLoaded(!0),e.setBlocking&&e.setBlocking(!1)})};export{r as g};
