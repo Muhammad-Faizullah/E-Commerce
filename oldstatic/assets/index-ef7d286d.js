@@ -1,1 +1,0 @@
-import{j as l,R as d,c as a,C as s}from"./index-dd8f6260.js";function m({children:o}){return l(d,{className:"m-0",children:[a(s,{md:"3",xl:4,lg:4}),a(s,{md:"6",xl:4,lg:4,children:a("div",{className:"no_data_found",children:o})})]})}export{m as N};
