@@ -1,1 +1,0 @@
-import{c as r,r as c,I as s,a5 as t}from"./index-dd8f6260.js";function i(o){const a=()=>{navigator.clipboard.writeText(o),t("success","Copied to clipboard")};return r(c.Fragment,{children:o?r(s.Copy,{size:12,onClick:()=>a(),className:"text-light-secondary c-pointer"}):""})}export{i as c};
